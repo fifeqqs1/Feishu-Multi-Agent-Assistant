@@ -1,5 +1,5 @@
 <p align="center">
-  <h1>🌟 OmniAgent 🌟</h1>
+  <h1 align="center">OmniAgent</h1>
 </p>
 
 <p align="center">
