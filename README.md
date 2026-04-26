@@ -14,26 +14,13 @@ Feishu Multi-Agent Assistant 是一个面向飞书办公场景的多智能体助
 - 后台管理：提供智能体、模型、工具、MCP Server、用户和使用统计等管理页面。
 - 可视化前端：Vue 3 + Vite + TypeScript + Element Plus，适合二次开发。
 
-## 界面预览
-
-| 工作区 | 聊天 | 知识库 |
-| --- | --- | --- |
-| ![主页](./imgs/主页.png) | ![聊天界面示例](./imgs/聊天界面示例.png) | ![知识库](./imgs/知识库.png) |
-
-| 智能体 | 模型管理 | MCP Server |
-| --- | --- | --- |
-| ![创建智能体](./imgs/创建智能体.png) | ![模型管理](./imgs/模型管理.png) | ![mcp_server](./imgs/mcp_server.png) |
-
 ## 架构概览
-
-![OmniAgent 架构图](./imgs/OmniAgent架构图.png)
 
 核心模块：
 
 - `src/backend/agentchat`：FastAPI 主服务，包含 API、Agent、RAG、MCP、工具、存储和数据库逻辑。
 - `src/backend/agentchat/mcp_servers/lark_mcp`：飞书/Lark MCP Server 和工具实现。
 - `src/frontend`：Vue 3 前端应用。
-- `imgs`：README 和文档使用的界面截图、架构图和 Logo。
 
 ## 技术栈
 
@@ -163,7 +150,6 @@ poetry run python -m lark_mcp.main --transport sse
 
 ```text
 .
-├── imgs/
 ├── scripts/
 ├── src/
 │   ├── backend/
