@@ -1,4 +1,5 @@
-from typing import List, Optional, Literal
+from typing import Literal, Optional
+
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -7,9 +8,9 @@ class ModelConfig(BaseModel):
     api_key: str = ""
     base_url: str = ""
 
+
 class MultiModels(BaseModel):
     class Config:
-        # 允许从dict额外属性创建模型
         extra = "allow"
 
     reasoning_model: ModelConfig = Field(default_factory=ModelConfig)
@@ -20,6 +21,7 @@ class MultiModels(BaseModel):
     text2image: ModelConfig = Field(default_factory=ModelConfig)
     embedding: ModelConfig = Field(default_factory=ModelConfig)
     rerank: ModelConfig = Field(default_factory=ModelConfig)
+
 
 class Tools(BaseModel):
     class Config:
@@ -32,6 +34,16 @@ class Tools(BaseModel):
     bocha: dict = Field(default_factory=dict)
 
 
+class OCROptions(BaseModel):
+    enable_ocr: bool = Field(default=False)
+    ocr_engine: str = Field(default="mineru")
+    parse_mode: str = Field(default="async")
+    pdf_text_threshold: int = Field(default=80)
+    ocr_timeout_seconds: int = Field(default=300)
+    ocr_max_pages: int = Field(default=100)
+    ocr_lang: str = Field(default="auto")
+
+
 class Rag(BaseModel):
     class Config:
         extra = "allow"
@@ -42,7 +54,19 @@ class Rag(BaseModel):
     split: dict = Field(default_factory=dict)
     elasticsearch: dict = Field(default_factory=dict)
     vector_db: dict = Field(default_factory=dict)
+    ocr: OCROptions = Field(default_factory=OCROptions)
 
+
+class MemoryOptions(BaseModel):
+    enable_redis_cache: bool = Field(default=True)
+    redis_ttl_seconds: int = Field(default=86400)
+    recent_history_pairs: int = Field(default=4)
+    max_history_messages: int = Field(default=12)
+    history_compaction_threshold_tokens: int = Field(default=1800)
+    max_history_context_tokens: int = Field(default=2400)
+    summary_max_tokens: int = Field(default=1200)
+    semantic_session_recall_limit: int = Field(default=4)
+    semantic_global_recall_limit: int = Field(default=4)
 
 
 class OSSConfig(BaseModel):
@@ -60,6 +84,7 @@ class MinioConfig(BaseModel):
     bucket_name: str
     base_url: str
 
+
 class StorageConfig(BaseModel):
     mode: Literal["oss", "minio"]
     oss: Optional[OSSConfig] = None
@@ -68,9 +93,9 @@ class StorageConfig(BaseModel):
     @model_validator(mode="after")
     def validate_storage(self):
         if self.mode == "oss" and not self.oss:
-            raise ValueError("mode=oss 时必须提供 aliyun_oss")
+            raise ValueError("mode=oss requires oss config")
         if self.mode == "minio" and not self.minio:
-            raise ValueError("mode=minio 时必须提供 minio")
+            raise ValueError("mode=minio requires minio config")
         return self
 
     @property

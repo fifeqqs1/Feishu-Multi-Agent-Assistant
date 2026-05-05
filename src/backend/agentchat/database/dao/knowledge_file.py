@@ -6,10 +6,30 @@ from sqlmodel import Session, select, delete, update
 class KnowledgeFileDao:
 
     @classmethod
-    async def create_knowledge_file(cls, knowledge_file_id, file_name, knowledge_id, user_id, oss_url, file_size_bytes):
+    async def create_knowledge_file(
+        cls,
+        knowledge_file_id,
+        file_name,
+        knowledge_id,
+        user_id,
+        oss_url,
+        file_size_bytes,
+        status,
+        parse_mode,
+    ):
         with session_getter() as session:
-            session.add(KnowledgeFileTable(file_name=file_name, knowledge_id=knowledge_id, file_size=file_size_bytes,
-                                           user_id=user_id, oss_url=oss_url, id=knowledge_file_id))
+            session.add(
+                KnowledgeFileTable(
+                    file_name=file_name,
+                    knowledge_id=knowledge_id,
+                    file_size=file_size_bytes,
+                    user_id=user_id,
+                    oss_url=oss_url,
+                    id=knowledge_file_id,
+                    status=status,
+                    parse_mode=parse_mode,
+                )
+            )
             session.commit()
 
     @classmethod
@@ -34,9 +54,16 @@ class KnowledgeFileDao:
             return results
 
     @classmethod
-    async def update_parsing_status(cls, knowledge_file_id, status):
+    async def update_knowledge_file(cls, knowledge_file_id, **update_values):
         with session_getter() as session:
-            update_values = {"status": status}
+            if not update_values:
+                return
             sql = update(KnowledgeFileTable).where(KnowledgeFileTable.id == knowledge_file_id).values(**update_values)
             session.exec(sql)
             session.commit()
+
+    @classmethod
+    async def update_parsing_status(cls, knowledge_file_id, status, **extra_fields):
+        update_values = {"status": status}
+        update_values.update(extra_fields)
+        return await cls.update_knowledge_file(knowledge_file_id, **update_values)

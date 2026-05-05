@@ -3,11 +3,12 @@ from agentchat.services.convert_files.convert_pdf import convert_to_pdf
 
 
 class DocxParser:
-    def __init__(self):
-        pass
-
     async def convert_pdf(self, file_path: str):
         return convert_to_pdf(file_path)
+
+    async def prepare_document(self, file_path: str):
+        pdf_file_path = await self.convert_pdf(file_path)
+        return await pdf_parser.prepare_document(pdf_file_path)
 
     async def parse_into_chunks(self, file_id, file_path, knowledge_id):
         pdf_file_path = await self.convert_pdf(file_path)
@@ -15,6 +16,5 @@ class DocxParser:
 
 
 docx_parser = DocxParser()
-
 
 

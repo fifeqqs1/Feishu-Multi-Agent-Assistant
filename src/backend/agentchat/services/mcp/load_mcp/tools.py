@@ -20,6 +20,7 @@ from mcp.types import CallToolResult, EmbeddedResource, ImageContent, TextConten
 from mcp.types import Tool as MCPTool
 from pydantic import BaseModel, create_model
 
+from agentchat.core.agents.retry import execute_with_retry
 from agentchat.services.mcp.sessions import Connection, create_session
 
 NonTextContent = ImageContent | EmbeddedResource
@@ -124,17 +125,26 @@ def convert_mcp_tool_to_langchain_tool(
     async def call_tool(
         **arguments: dict[str, Any],
     ) -> tuple[str | list[str], list[NonTextContent] | None]:
-        if session is None:
-            # If a session is not provided, we will create one on the fly
-            async with create_session(connection) as tool_session:
-                await tool_session.initialize()
-                call_tool_result = await cast("ClientSession", tool_session).call_tool(
-                    tool.name,
-                    arguments,
-                )
-        else:
-            call_tool_result = await session.call_tool(tool.name, arguments)
-        return _convert_call_tool_result(call_tool_result)
+        async def _invoke_once() -> tuple[str | list[str], list[NonTextContent] | None]:
+            if session is None:
+                # If a session is not provided, we will create one on the fly
+                async with create_session(connection) as tool_session:
+                    await tool_session.initialize()
+                    call_tool_result = await cast("ClientSession", tool_session).call_tool(
+                        tool.name,
+                        arguments,
+                    )
+            else:
+                call_tool_result = await session.call_tool(tool.name, arguments)
+
+            return _convert_call_tool_result(call_tool_result)
+
+        return await execute_with_retry(
+            _invoke_once,
+            max_attempts=3,
+            base_delay=0.75,
+            operation_name=f"MCP tool `{tool.name}`",
+        )
 
     return StructuredTool(
         name=tool.name,

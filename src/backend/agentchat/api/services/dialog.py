@@ -4,6 +4,8 @@ from agentchat.database.dao.history import HistoryDao
 from loguru import logger
 
 from agentchat.database.models.user import AdminUser
+from agentchat.services.memory.client import memory_client
+from agentchat.services.memory.session_context import session_context_manager
 
 
 class DialogService:
@@ -52,6 +54,11 @@ class DialogService:
         try:
             await DialogDao.delete_dialog_by_id(dialog_id=dialog_id)
             await HistoryDao.delete_history_by_dialog_id(dialog_id=dialog_id)
+            await session_context_manager.clear_cache(dialog_id)
+            try:
+                await memory_client.delete_all(run_id=dialog_id)
+            except Exception as cleanup_err:
+                logger.warning(f"Delete dialog memory cleanup failed: {cleanup_err}")
         except Exception as err:
             raise ValueError(f"Delete Dialog Appear Error: {err}")
 
@@ -60,4 +67,3 @@ class DialogService:
         dialog = await DialogDao.get_agent_by_dialog_id(dialog_id)
         if user_id not in (AdminUser, dialog.user_id):
             raise ValueError(f"没有权限访问")
-

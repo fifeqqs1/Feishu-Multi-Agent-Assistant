@@ -4,7 +4,7 @@ from loguru import logger
 from types import SimpleNamespace
 from pydantic.v1 import BaseSettings, Field
 
-from agentchat.schema.common import MultiModels, ModelConfig, Tools, Rag, StorageConfig
+from agentchat.schema.common import MemoryOptions, MultiModels, ModelConfig, Tools, Rag, StorageConfig
 
 
 class Settings(BaseSettings):
@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     default_config: dict = {}
 
     rag: Optional[Rag] = None
+    memory: MemoryOptions = Field(default_factory=MemoryOptions)
     tools: Optional[Tools] = None
     storage: Optional[StorageConfig] = None
     multi_models: Optional[MultiModels] = None
@@ -44,6 +45,11 @@ async def initialize_app_settings(file_path: str = None):
 
             if "rag" in data:
                 data["rag"] = Rag(**data["rag"])
+
+            if "memory" in data:
+                data["memory"] = MemoryOptions(**data["memory"])
+            else:
+                data["memory"] = MemoryOptions()
 
             if "storage" in data:
                 data["storage"] = StorageConfig(**data["storage"])
